@@ -41,22 +41,12 @@ namespace BMW_Data_Reader
             LPath.Text = globalDataPath;
         }
 
-        private void FBMWDataReader_Load(object sender, EventArgs e)
+        void ReadLoginData()
         {
-
-            globalDataPath = Properties.Settings.Default.GlobalDataPath;
-            if(globalDataPath == "")
-            {
-                globalDataPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            }
-            else
-            {
-            }
-            LPath.Text = globalDataPath;
-
-            logger = new Logger();
-            logger.Open(globalDataPath + logDataFileName);
-            logger.WriteLogLine("Start Prog");
+            UserData userDataOld = userData;
+            userData.Login = "";
+            userData.Password = "";
+            userData.VIN = "";
             if (System.IO.File.Exists(globalDataPath + loginDataFileName) == true)
             {
                 String loginLine = "";
@@ -90,9 +80,7 @@ namespace BMW_Data_Reader
                             userData.Login = SciPhyLib.Crypt.Decrypt(loginLineData[1], password);
                             userData.Password = SciPhyLib.Crypt.Decrypt(passwordLineData[1], password);
                             userData.VIN = SciPhyLib.Crypt.Decrypt(vinLineData[1], password);
-                            TBLogin.Text = userData.Login;
-                            TBPassword.Text = userData.Password;
-                            TBVIN.Text = userData.VIN;
+                            
                         }
                     }
                     else
@@ -105,7 +93,34 @@ namespace BMW_Data_Reader
                     logger.WriteLogLine(string.Format("Reading user data failed! Amount of data unexpected! Clear file {0} if occour again!", globalDataPath + loginDataFileName));
                 }
             }
+            TBLogin.Text = userData.Login;
+            TBPassword.Text = userData.Password;
+            TBVIN.Text = userData.VIN;
+            if (userDataOld != userData)
+            {
+                // invalidate bearer when changing credentials
+                bearer.expires_in = 0;
+            }
+        }
 
+        private void FBMWDataReader_Load(object sender, EventArgs e)
+        {
+
+            globalDataPath = Properties.Settings.Default.GlobalDataPath;
+            if(globalDataPath == "")
+            {
+                globalDataPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            }
+            else
+            {
+            }
+            LPath.Text = globalDataPath;
+
+            logger = new Logger();
+            logger.Open(globalDataPath + logDataFileName);
+            logger.WriteLogLine("Start Prog");
+
+            ReadLoginData();
         }
 
         private void FBMWDataReader_FormClosing(object sender, FormClosingEventArgs e)
@@ -140,10 +155,10 @@ namespace BMW_Data_Reader
             TBDebug.Text += bearer.expieredTime.ToLongDateString() + " " + bearer.expieredTime.ToLongTimeString() + "\r\n";
         }
 
-        private string ReadCarData(String BMWCarDataSite)
+        private string ReadCarData(String BMWCarDataSite, String Params)
         {
             logger.WriteLogLine("Reading: " + BMWCarDataSite);
-            string formParams = string.Format("/{0}?offset=-60", userData.VIN);
+            string formParams = string.Format("/{0}{1}", userData.VIN,Params);
             HttpWebRequest BMWSiteWebRequest = (HttpWebRequest)HttpWebRequest.Create(BMWCarDataSite + formParams);
             BMWSiteWebRequest.CookieContainer = BMWCookies;
             BMWSiteWebRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
@@ -192,6 +207,17 @@ namespace BMW_Data_Reader
             }
         }
 
+
+        //https://www.bmw-connecteddrive.de/api/vehicle/service/v1/ {0}=VIN 
+        //https://www.bmw-connecteddrive.de/api/vehicle/servicepartner/v1/ {0}=VIN 
+        //https://www.bmw-connecteddrive.de/api/vehicle/navigation/v1/ {0}=VIN 
+        //https://www.bmw-connecteddrive.de/api/vehicle/efficiency/v1/ {0}=VIN 
+        //https://www.bmw-connecteddrive.de/api/vehicle/remoteservices/chargingprofile/v1/ {0}=VIN 
+        //https://www.bmw-connecteddrive.de/api/me/service/mapupdate/download/v1/ {0}=VIN 
+        //https://www.bmw-connecteddrive.de/api/vehicle/dynamic/v1/ {0}=VIN ?offset=-120
+        //https://www.bmw-connecteddrive.de/api/vehicle/image/v1/ {0}=VIN ?startAngle=0&stepAngle=10&width=780
+
+
         private void BReadData_Click(object sender, EventArgs e)
         {
             if (bearer.expires_in > 0)
@@ -207,19 +233,39 @@ namespace BMW_Data_Reader
             }
             if (bearer.expires_in > 0)
             {
-                logger.WriteLogLine("read dynamc data");
-                string dynamicData = ReadCarData("https://www.bmw-connecteddrive.de/api/vehicle/dynamic/v1");
                 DateTime dateTime = DateTime.Now;
                 String dateTimeText = dateTime.Year + dateTime.Month.ToString("00") + dateTime.Day.ToString("00") + "_" +
                     dateTime.Hour.ToString("00") + dateTime.Minute.ToString("00") + dateTime.Second.ToString("00");
-                TextWriter textWriterDynData = new StreamWriter(globalDataPath + "Dyn" + dateTimeText + ".txt");
+
+                logger.WriteLogLine("read dynamc data");
+                string dynamicData = ReadCarData("https://www.bmw-connecteddrive.de/api/vehicle/dynamic/v1", "?offset=-120");
+                TextWriter textWriterDynData = new StreamWriter(globalDataPath + "dyn" + dateTimeText + ".txt");
                 textWriterDynData.Write(dynamicData);
                 textWriterDynData.Close();
+
                 logger.WriteLogLine("read efficiency data");
-                string efficiencyData = ReadCarData("https://www.bmw-connecteddrive.de/api/vehicle/efficiency/v1");
+                string efficiencyData = ReadCarData("https://www.bmw-connecteddrive.de/api/vehicle/efficiency/v1", "");
                 TextWriter textWriterEffData = new StreamWriter(globalDataPath + "eff" + dateTimeText + ".txt");
                 textWriterEffData.Write(efficiencyData);
                 textWriterEffData.Close();
+
+                logger.WriteLogLine("read remoteservices data");
+                string remoteData = ReadCarData("https://www.bmw-connecteddrive.de/api/vehicle/remoteservices/chargingprofile/v1", "");
+                TextWriter textWriterRemData = new StreamWriter(globalDataPath + "rem" + dateTimeText + ".txt");
+                textWriterRemData.Write(remoteData);
+                textWriterRemData.Close();
+
+                logger.WriteLogLine("read service data");
+                string serviceData = ReadCarData("https://www.bmw-connecteddrive.de/api/vehicle/service/v1", "");
+                TextWriter textWriterSrvData = new StreamWriter(globalDataPath + "srv" + dateTimeText + ".txt");
+                textWriterSrvData.Write(serviceData);
+                textWriterSrvData.Close();
+
+                logger.WriteLogLine("read service partner data");
+                string servicePartnerData = ReadCarData("https://www.bmw-connecteddrive.de/api/vehicle/servicepartner/v1", "");
+                TextWriter textWriterSrvPartnerData = new StreamWriter(globalDataPath + "srP" + dateTimeText + ".txt");
+                textWriterSrvPartnerData.Write(servicePartnerData);
+                textWriterSrvPartnerData.Close();
             }
             else
             {
@@ -231,6 +277,7 @@ namespace BMW_Data_Reader
         private void BChangePath_Click(object sender, EventArgs e)
         {
             ChangePath();
+            ReadLoginData();
         }
     }
 }

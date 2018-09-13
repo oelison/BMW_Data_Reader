@@ -57,7 +57,16 @@ namespace SciPhyLib
             MemoryStream memoryStream = new MemoryStream(encryptedTextArray);
             CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptTransformer, CryptoStreamMode.Read);
             byte[] textArray = new byte[encryptedTextArray.Length];
-            int decryptedByteCount = cryptoStream.Read(textArray, 0, textArray.Length);
+            int decryptedByteCount;
+            try
+            {
+                decryptedByteCount = cryptoStream.Read(textArray, 0, textArray.Length);
+            }
+            catch (Exception)
+            {
+                return "pwd wrong!";
+            }
+            
             memoryStream.Close();
             cryptoStream.Close();
             text =  Encoding.UTF8.GetString(textArray, 0, decryptedByteCount);
