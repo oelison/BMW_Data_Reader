@@ -19,12 +19,12 @@ If you have stored the credentials the program ask for the password.
 the just push Read Data and the program log in on the BMW site. All received data is stored in the shown path.
 
 ```
-        //https://www.bmw-connecteddrive.de/api/vehicle/service/v1/ {0}=VIN                           srv*.txt
-        //https://www.bmw-connecteddrive.de/api/vehicle/servicepartner/v1/ {0}=VIN                    srP*.txt
-        //https://www.bmw-connecteddrive.de/api/vehicle/navigation/v1/ {0}=VIN                        not read yet
-        //https://www.bmw-connecteddrive.de/api/vehicle/efficiency/v1/ {0}=VIN                        eff*.txt
-        //https://www.bmw-connecteddrive.de/api/vehicle/remoteservices/chargingprofile/v1/ {0}=VIN    rem*.txt
-        //https://www.bmw-connecteddrive.de/api/me/service/mapupdate/download/v1/ {0}=VIN             not read yet
-        //https://www.bmw-connecteddrive.de/api/vehicle/dynamic/v1/ {0}=VIN ?offset=-120              dyn*.txt
+//https://www.bmw-connecteddrive.de/api/vehicle/service/v1/ {0}=VIN                           srv*.txt
+//https://www.bmw-connecteddrive.de/api/vehicle/servicepartner/v1/ {0}=VIN                    srP*.txt
+//https://www.bmw-connecteddrive.de/api/vehicle/navigation/v1/ {0}=VIN                        not read yet
+//https://www.bmw-connecteddrive.de/api/vehicle/efficiency/v1/ {0}=VIN                        eff*.txt
+//https://www.bmw-connecteddrive.de/api/vehicle/remoteservices/chargingprofile/v1/ {0}=VIN    rem*.txt
+//https://www.bmw-connecteddrive.de/api/me/service/mapupdate/download/v1/ {0}=VIN             not read yet
+//https://www.bmw-connecteddrive.de/api/vehicle/dynamic/v1/ {0}=VIN ?offset=-120              dyn*.txt
 ```
 
