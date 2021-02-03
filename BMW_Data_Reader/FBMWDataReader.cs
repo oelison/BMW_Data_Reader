@@ -249,11 +249,11 @@ namespace BMW_Data_Reader
                 textWriterEffData.Write(efficiencyData);
                 textWriterEffData.Close();
 
-                logger.WriteLogLine("read remoteservices data");
-                string remoteData = ReadCarData("https://www.bmw-connecteddrive.de/api/vehicle/remoteservices/chargingprofile/v1", "");
-                TextWriter textWriterRemData = new StreamWriter(globalDataPath + "rem" + dateTimeText + ".txt");
-                textWriterRemData.Write(remoteData);
-                textWriterRemData.Close();
+                //logger.WriteLogLine("read remoteservices data");
+                //string remoteData = ReadCarData("https://www.bmw-connecteddrive.de/api/vehicle/remoteservices/chargingprofile/v1", "");
+                //TextWriter textWriterRemData = new StreamWriter(globalDataPath + "rem" + dateTimeText + ".txt");
+                //textWriterRemData.Write(remoteData);
+                //textWriterRemData.Close();
 
                 logger.WriteLogLine("read service data");
                 string serviceData = ReadCarData("https://www.bmw-connecteddrive.de/api/vehicle/service/v1", "");
